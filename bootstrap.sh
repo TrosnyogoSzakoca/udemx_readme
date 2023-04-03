@@ -10,9 +10,41 @@ useradd -m -d /opt/udemx udemx
 chpasswd <<< "udemx:udemx"
 
 apt-get install openssh-server -y
-systemctl status ssh
-nano /etc/ssh/sshd_confix
-^\ 
-#ssh debian@0.0.0.0
+#systemctl status ssh
+sed -i 's/#Port 22/Port 2222:/g' /etc/ssh/sshd_config
+sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes:/g' /etc/ssh/sshd_config
+#nano /etc/ssh/sshd_config
+#^\ 
+#ssh debian@0.0.0.0 <<< -yes
 
-#apt-get install -y apache2
+apt-get install fail2ban -y
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+# [sshd]
+# enabled = true
+sed -i 's/# [sshd]/[sshd]:/g' /etc/fail2ban/jail.local
+sed -i 's/# enabled = true/enabled = true:/g' /etc/fail2ban/jail.local
+
+#[nginx-http-auth]
+#enabled = true
+sed -i '/\[nginx-http-auth]/a enabled = true' /etc/fail2ban/jail.local
+
+apt-get install nginx -y
+#<h1>Welcome to nginx!</h1>
+sed -i 's/Welcome to nginx!/Hello UDEMX!/2' /var/www/html/index.nginx-debian.html
+
+apt-get install mariadb-server -y
+#mysql_secure_installation -y
+#mysql
+#create database UDEMX_DB;
+
+apt install apt-transport-https ca-certificates curl gnupg2 software-properties-common
+curl -fsSL https://download.docker.com/linux/debian/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+apt update
+apt-cache policy docker-ce ##
+apt install docker-ce
+docker run hello-world
+
+apt install git
+git config --global user.email "udemx@udemx.eu"
+git config --global user.name "udemx"
