@@ -183,3 +183,60 @@ winscp-t használtam, hogy a megadott credentialokkal belépjek a tárhelyemre
 az xml fájlt a /etc/libvirt/qemu/debian10.xml néven/helyen meg is találtam
 
 ezt fel is töltöttem a tárhelyre
+
+To begin using iptables, you should first add the rules for allowed inbound traffic for the services you require. Iptables can track the state of the connection, use the command below to allow established connections.
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+sudo iptables -A INPUT -p tcp --dport 2222 -j ACCEPT
+
+sudo iptables -P INPUT DROP
+
+1. script: 
+mkdir scripts
+cd scripts
+nano db_dump.sh
+
+#!/bin/bash
+DIR=`date +%d-%m-%y`
+DEST=~/db_backups/$DIR
+mkdir $DEST
+
+mysqldump -h mysql_hostname -u mysql_user -p"mysql_password" database_name > dbbackup.sql
+
+chmod +x ~/scripts/db_dump.sh
+
+crontab -e
+
+0 2 * * * ~/scripts/db_dump.sh
+
+2.
+
+#!/bin/bash
+
+ls -lt /var/log | head -4 | tail -3 >> mod-<DATE>.out
+
+3.
+
+(sudo) find /var/log/* -newermt „5 day ago” -ls >> last_five-<DATE>
+
+4.
+cat /proc/loadavg | tr „ „ „/n” | head -3 | tail -1
+
+5.
+sed -i ’s/<title>/Title:/g’ file.txt
+
+jenkins:
+https://www.digitalocean.com/community/tutorials/how-to-install-jenkins-on-ubuntu-22-04
+követése
+
+ssh balu
+balu Alma1234
+
+docker install
+
+docker compose most jön
+
+jenkins dockerben:
+admin
+admin
+jenkins url: localhost:8081/
