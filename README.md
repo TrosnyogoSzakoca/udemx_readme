@@ -171,11 +171,13 @@ eval "$(ssh-agent -s)"
 
 igen, addoljuk az ssh-keyt
 
-ssh-add ~/.ssh/id_rsa
+ssh-keygen -o -t rsa -C "udemx@udemx.eu"
 
-majd pedig installálni kellene a git acc-hoz, de ezt nem igazán értettem hogyan kell
+cd ~/.ssh
 
-itt már elfáradtam, sajnos már szerda van, ideje feltölteni az eddigi munkát, ha lesz rá lehetőség, foglalkoznék még ezzel és biztos, hogy lesz kérdésem a pluszpontos feladatokhoz :D
+cat id_rsa.pub
+
+kimásoljuk és addoljuk a github accounthoz
 
 # Dolgok feltöltése
 winscp-t használtam, hogy a megadott credentialokkal belépjek a tárhelyemre
