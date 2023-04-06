@@ -2,6 +2,97 @@
 - hosts: all
   become: true
   tasks:
+    - name: update packages
+      apt:
+        update_cache: true
+
+    - name: changes root password
+      user:
+        name: root
+        update_password: always
+        password: Alma1234
+
+    - name: add debian to sudo group
+      user:
+        name: debian
+        groups: sudo
+        append: true
+
+    - name: install mc
+      apt:
+        name: mc
+        state: present
+
+    - name: install htop
+      apt:
+        name: htop
+        state: present
+
+    - name: install OpenJDK 11
+      apt:
+        name: openjdk-11-jdk
+        state: present
+
+    - name: create udemx user
+      user:
+        name: udemx
+        createhome: true
+        home: /opt/udemx
+        password: "udemx"
+
+    - name: install openssh server
+      apt:
+        name: openssh-server
+        state: present
+
+    - name: change ssh port and enable root login
+      replace:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '#Port 22'
+          replace: 'Port 2222'
+        - regexp: '#PermitRootLogin prohibit-password'
+          replace: 'PermitRootLogin yes'
+
+    - name: install fail2ban
+      apt:
+        name: fail2ban
+        state: present
+      notify:
+        - Restart fail2ban
+      tags:
+        - fail2ban
+
+    - name: create jail.local file
+      file:
+        path: /etc/fail2ban/jail.local
+        state: touch
+        mode: 0644
+
+    - name: copy fail2ban jail config file
+      fetch:
+        src: /etc/fail2ban/jail.conf
+        dest: /etc/fail2ban/jail.local
+
+    - name: config fail2ban ssh jail
+      replace:
+        path: /etc/fail2ban/jail.local
+        regexp: "{{ item.regexp }}"
+        replace: "{{ item.replace }}"
+      loop:
+        - regexp: '# [sshd]'
+          replace: '[sshd]'
+        - regexp: '# enabled = true'
+          replace: 'enabled = true'
+
+    - name: config fail2ban nginx-http-auth
+      lineinfile:
+        path: /etc/fail2ban/jail.local
+        insertafter: "[nginx-http-auth]"
+        line: "enabled = true"
+
     - name: install packages
       become: true
       become_user: root
@@ -37,3 +128,9 @@
 
     - name: ensure jenkins is running
       service: name=jenkins state=started
+
+  handlers:
+    - name: Restart fail2ban
+      service:
+        name: fail2ban
+        state: restarted
