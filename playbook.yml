@@ -65,16 +65,12 @@
       tags:
         - fail2ban
 
-    - name: create jail.local file
-      file:
-        path: /etc/fail2ban/jail.local
-        state: touch
-        mode: 0644
-
     - name: copy fail2ban jail config file
-      fetch:
+      copy:
         src: /etc/fail2ban/jail.conf
         dest: /etc/fail2ban/jail.local
+        mode: 0755
+        remote_src: true
 
     - name: config fail2ban ssh jail
       replace:
@@ -90,8 +86,8 @@
     - name: config fail2ban nginx-http-auth
       lineinfile:
         path: /etc/fail2ban/jail.local
-        insertafter: "[nginx-http-auth]"
-        line: "enabled = true"
+        line: enabled = true
+        insertafter: ^[nginx-http-auth]
 
     - name: install packages
       become: true
