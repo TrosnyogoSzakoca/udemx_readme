@@ -56,14 +56,24 @@
         - regexp: '#PermitRootLogin prohibit-password'
           replace: 'PermitRootLogin yes'
 
-    - name: install fail2ban
+    - name: Install fail2ban
       apt:
         name: fail2ban
         state: present
-      notify:
-        - Restart fail2ban
-      tags:
-        - fail2ban
+      when: ansible_os_family == 'Debian'
+      become: true
+
+    - name: Start fail2ban service
+      service:
+        name: fail2ban
+        state: started
+      become: true
+
+    - name: Enable fail2ban service
+      service:
+        name: fail2ban
+        enabled: true
+      become: true
 
     - name: copy fail2ban jail config file
       copy:
@@ -83,11 +93,10 @@
         - regexp: '# enabled = true'
           replace: 'enabled = true'
 
-    - name: config fail2ban nginx-http-auth
-      lineinfile:
-        path: /etc/fail2ban/jail.local
-        line: enabled = true
-        insertafter: ^[nginx-http-auth]
+    - name: Restart fail2ban service
+      service:
+        name: fail2ban
+        state: restarted
 
     - name: install packages
       become: true
@@ -100,8 +109,62 @@
           - iptables
           - curl
           - gnupg
+          - python3-pip
+
+    - name: ensure nginx is present
+      apt:
+        name: nginx
+        state: present
+
+    - name: start nginx
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+    - name: Start Hello World Docker container
+      community.docker.docker_container:
+        image: hello-world
+        name: hello-world
+        state: started
+
+    - name: setup git name
+      become_user: udemx
+      become: true
+      git_config:
+        name: user.name
+        scope: global
+        value: "udemx"
+
+    - name: setup git user email
+      git_config:
+        name: user.email
+        scope: global
+        value: udemx@udemx.eu
 
     - name: ensure the jenkins apt repository key is installed
+      become: true
+      become_user: root
       get_url:
         url: https://pkg.jenkins.io/debian/jenkins.io-2023.key
         dest: /usr/share/keyrings/jenkins-keyring.asc
@@ -111,6 +174,11 @@
 
     - name: Upgrade all apt packages
       apt: upgrade=dist force_apt_get=yes
+
+    - name: jenkins public key
+      apt_key:
+        keyserver: keyserver.ubuntu.com
+        id: 5BA31D57EF5975CA
 
     - name: ensure the repository is configured
       apt_repository:
@@ -124,9 +192,3 @@
 
     - name: ensure jenkins is running
       service: name=jenkins state=started
-
-  handlers:
-    - name: Restart fail2ban
-      service:
-        name: fail2ban
-        state: restarted
