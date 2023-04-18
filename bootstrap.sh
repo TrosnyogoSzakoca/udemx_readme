@@ -43,3 +43,13 @@ git config --global user.email "udemx@udemx.eu"
 git config --global user.name "udemx"
 
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 5BA31D57EF5975CA # Jenkins key, nem értem
+
+# 3735407
+# after restart
+- name: config fail2ban nginx-http-auth
+      lineinfile:
+        path: /etc/fail2ban/jail.local
+        line: enabled = true
+        insertafter: ^[nginx-http-auth]
+        state: present
+      become: true
